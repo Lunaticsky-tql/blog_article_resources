@@ -148,7 +148,7 @@ layout/_partials/css.ejs
 
 source/js/main.js
 
-增加[侧边栏](https://github.com/qixa/hexo-theme-fluid-mod#侧边栏模板文件)相关控制代码
+增加侧边栏相关控制代码
 
 ```javascript
 /* Sidebar */
@@ -173,3 +173,5 @@ layout/_partials/scripts.ejs中进行引用
 ```javascript
 <%- js_ex(theme.static_prefix.internal_js, 'main.js') %>
 ```
+
+配置完成后，可以从左下角箭头打开侧边栏。
