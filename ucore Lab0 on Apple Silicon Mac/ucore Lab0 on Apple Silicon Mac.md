@@ -1,3 +1,8 @@
+---
+title: ucore Lab0 on Apple Silicon Mac
+categories: 操作系统实验
+tags: [操作系统]
+---
 ## ucore Lab0 on Apple Silicon Mac
 
 ### 介绍
@@ -29,17 +34,17 @@ sudo port install i386-elf-gcc
 
 但是发现它安装过程中构建失败了。
 
-![image-20221003224714488](/Users/tianjiaye/Library/Application Support/typora-user-images//image-20221003224714488.png)
+![image-20221003224714488](https://raw.githubusercontent.com/Lunaticsky-tql/my_picbed/main/ucore%20Lab0%20on%20Apple%20Silicon%20Mac/20221003231400206876_223_image-20221003224714488.png)
 
 查看发现果然是架构问题：
 
-![image-20221003224809467](/Users/tianjiaye/Library/Application Support/typora-user-images//image-20221003224809467.png)
+![image-20221003224809467](https://raw.githubusercontent.com/Lunaticsky-tql/my_picbed/main/ucore%20Lab0%20on%20Apple%20Silicon%20Mac/20221003231401953713_177_image-20221003224809467.png)
 
 查看报错信息。谷歌后从[github issue](https://github.com/riscv-collab/riscv-gnu-toolchain/issues/800)中得知是有支持apple silicon版本的最新i386-elf-gcc的。
 
-![image-20221003225239013](/Users/tianjiaye/Library/Application Support/typora-user-images//image-20221003225239013.png)
+![image-20221003225239013](https://raw.githubusercontent.com/Lunaticsky-tql/my_picbed/main/ucore%20Lab0%20on%20Apple%20Silicon%20Mac/20221003231403860364_202_image-20221003225239013.png)
 
-![image-20221003225245971](/Users/tianjiaye/Library/Application Support/typora-user-images//image-20221003225245971.png)
+![image-20221003225245971](https://raw.githubusercontent.com/Lunaticsky-tql/my_picbed/main/ucore%20Lab0%20on%20Apple%20Silicon%20Mac/20221003231405125684_549_image-20221003225245971.png)
 
 有希望！但是按官网命令安装问题也没有解决，所谓补丁也不起效。后来尝试用homebrew安装：`brew install i386-elf-gdb`，但没有安装成功。提示
 
@@ -66,7 +71,7 @@ git config --global --add safe.directory 报错信息中homebrew-cask路径
 
 然后`make qemu`执行的过程也比较顺利。
 
-![image-20221003230427926](/Users/tianjiaye/Library/Application Support/typora-user-images//image-20221003230427926.png)
+![image-20221003230427926](https://raw.githubusercontent.com/Lunaticsky-tql/my_picbed/main/ucore%20Lab0%20on%20Apple%20Silicon%20Mac/20221003231407841829_266_image-20221003230427926.png)
 
 
 
