@@ -1,3 +1,8 @@
+---
+title: C++拾遗
+categories: 笔记
+tags: [C++]
+---
 ## C++回顾复习
 
 #### Lec1-2
@@ -14,7 +19,7 @@ main不是C++中的保留字。因此`int main;`在C++中合法。
 
 以下对枚举类型名的定义中正确的是
 
-![image-20221006143112706](/Users/tianjiaye/Library/Application Support/typora-user-images//image-20221006143112706.png)
+![image-20221006143112706](https://raw.githubusercontent.com/Lunaticsky-tql/my_picbed/main/c%2B%2B/20221006205903569808_152_image-20221006143112706.png)
 
 枚举值对应的整数值可以是任意整数。
 
@@ -35,4 +40,4 @@ cout<<my<<' '<<your<<' '<<his<<' '<<her<<endl;
 
 关于字符串类型
 
-![image-20221006142909708](/Users/tianjiaye/Library/Application Support/typora-user-images//image-20221006142909708.png)
+![image-20221006142909708](https://raw.githubusercontent.com/Lunaticsky-tql/my_picbed/main/c%2B%2B/20221006205904459199_980_image-20221006142909708.png)
