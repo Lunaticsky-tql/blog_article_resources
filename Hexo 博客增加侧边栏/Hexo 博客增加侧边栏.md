@@ -1,13 +1,9 @@
 ---
 title: Hexo 博客增加侧边栏
-categories: 博客搭建
-tags: [Hexo, 前端]
+categories: 
+tags: []
 ---
 ### Hexo 博客增加侧边栏
-
-效果：
-
-![image-20220924213358550](https://raw.githubusercontent.com/Lunaticsky-tql/my_picbed/main/Hexo%20%E5%8D%9A%E5%AE%A2%E5%A2%9E%E5%8A%A0%E4%BE%A7%E8%BE%B9%E6%A0%8F/20220924220650778115_333_image-20220924213358550.png)
 
 根据https://github.com/qixa/hexo-theme-fluid-mod修改
 
@@ -179,21 +175,3 @@ layout/_partials/scripts.ejs中进行引用
 ```
 
 配置完成后，可以从左下角箭头打开侧边栏。
-
----
-
-### 去除图片阴影
-
-主题中图片自带的阴影有些不够干净简洁。可以通过修改styl去除之。
-
-在source/css/_variables/base.styl
-
-将图片阴影的属性修改即可。
-
-![image-20220925171400552](https://raw.githubusercontent.com/Lunaticsky-tql/my_picbed/main/Hexo%20%E5%8D%9A%E5%AE%A2%E5%A2%9E%E5%8A%A0%E4%BE%A7%E8%BE%B9%E6%A0%8F/20220924220653383643_614_image-20220924213743047.png)
-
-### 去除图片标题显示
-
-找到plugin.js，注释掉这一行即可。
-
-![image-20220925171216843](https://raw.githubusercontent.com/Lunaticsky-tql/my_picbed/main/Hexo%20%E5%8D%9A%E5%AE%A2%E5%A2%9E%E5%8A%A0%E4%BE%A7%E8%BE%B9%E6%A0%8F/20220925171426671667_100_image-20220925171216843.png)
