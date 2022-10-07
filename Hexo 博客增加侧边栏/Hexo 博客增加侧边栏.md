@@ -1,7 +1,9 @@
 ---
 title: Hexo 博客增加侧边栏
-categories: 
-tags: []
+categories: 博客搭建
+tags:
+  - Hexo
+  - 前端
 ---
 ### Hexo 博客增加侧边栏
 
