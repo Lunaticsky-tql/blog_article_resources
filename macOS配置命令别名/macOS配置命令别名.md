@@ -1,3 +1,9 @@
+---
+title: macOS配置命令别名
+categories: 寄巧
+tags:
+  - linux
+---
 ## macOS配置命令别名
 
 ### 临时别名
