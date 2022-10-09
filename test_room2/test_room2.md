@@ -1,8 +1,8 @@
 ---
 title: test_room2
-categories: 笔记
+categories: 
 tags:
-  - 机器学习
+  - 
 ---
 ## 模型评估与选择
 
