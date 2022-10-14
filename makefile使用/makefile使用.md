@@ -1,3 +1,9 @@
+---
+title: makefile使用
+categories: 小寄巧
+tags:
+  - linux
+---
 # Makefile 入门
 
 ## 最小示例
@@ -426,7 +432,9 @@ lame ver: 3⏎
 
 ## 参考链接
 
-```card
+---
+
 刘哇勇
 https://www.cnblogs.com/Wayou/p/gnu_make_tutorial.html
-```
+
+---
