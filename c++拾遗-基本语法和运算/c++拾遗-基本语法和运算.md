@@ -59,7 +59,7 @@ cout<<my<<' '<<your<<' '<<his<<' '<<her<<endl;
 
 ##### 表达式
 
-![image-20221013141835992](https://raw.githubusercontent.com/Lunaticsky-tql/my_picbed/main/c%2B%2B%E6%8B%BE%E9%81%97-%E5%9F%BA%E6%9C%AC%E8%AF%AD%E6%B3%95%E5%92%8C%E8%BF%90%E7%AE%97/20221020201307860409_128_image-20221013141835992.png)
+![image-20221013141835992](https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/c%2B%2B%E6%8B%BE%E9%81%97-%E5%9F%BA%E6%9C%AC%E8%AF%AD%E6%B3%95%E5%92%8C%E8%BF%90%E7%AE%97/20221020201307860409_128_image-20221013141835992.png)
 
 注意，“表达式”不带分号，带了分号就是语句。
 
@@ -100,7 +100,7 @@ int main() {
 
 $\lfloor 11*1/3 \rfloor=3$
 
-![image-20221013142054782](https://raw.githubusercontent.com/Lunaticsky-tql/my_picbed/main/c%2B%2B%E6%8B%BE%E9%81%97-%E5%9F%BA%E6%9C%AC%E8%AF%AD%E6%B3%95%E5%92%8C%E8%BF%90%E7%AE%97/20221020201309887843_159_image-20221013142054782.png)
+![image-20221013142054782](https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/c%2B%2B%E6%8B%BE%E9%81%97-%E5%9F%BA%E6%9C%AC%E8%AF%AD%E6%B3%95%E5%92%8C%E8%BF%90%E7%AE%97/20221020201309887843_159_image-20221013142054782.png)
 
 做题时容易犯的错误：
 
@@ -111,7 +111,7 @@ $\lfloor 11*1/3 \rfloor=3$
 
 #### 逻辑运算
 
-![image-20221020095906292](https://raw.githubusercontent.com/Lunaticsky-tql/my_picbed/main/c%2B%2B%E6%8B%BE%E9%81%97-%E5%9F%BA%E6%9C%AC%E8%AF%AD%E6%B3%95%E5%92%8C%E8%BF%90%E7%AE%97/20221020201311747149_485_image-20221020095906292.png)
+![image-20221020095906292](https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/c%2B%2B%E6%8B%BE%E9%81%97-%E5%9F%BA%E6%9C%AC%E8%AF%AD%E6%B3%95%E5%92%8C%E8%BF%90%E7%AE%97/20221020201311747149_485_image-20221020095906292.png)
 
 注意算术运算符优先于关系和除非以外的逻辑运算符！
 
@@ -133,15 +133,15 @@ std::cout<<((c=2)&&(h=-2));
 
 #### 位运算
 
-![image-20221020105755065](https://raw.githubusercontent.com/Lunaticsky-tql/my_picbed/main/c%2B%2B%E6%8B%BE%E9%81%97-%E5%9F%BA%E6%9C%AC%E8%AF%AD%E6%B3%95%E5%92%8C%E8%BF%90%E7%AE%97/20221020201313889596_775_image-20221020105755065.png)
+![image-20221020105755065](https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/c%2B%2B%E6%8B%BE%E9%81%97-%E5%9F%BA%E6%9C%AC%E8%AF%AD%E6%B3%95%E5%92%8C%E8%BF%90%E7%AE%97/20221020201313889596_775_image-20221020105755065.png)
 
-![image-20221020104858172](https://raw.githubusercontent.com/Lunaticsky-tql/my_picbed/main/c%2B%2B%E6%8B%BE%E9%81%97-%E5%9F%BA%E6%9C%AC%E8%AF%AD%E6%B3%95%E5%92%8C%E8%BF%90%E7%AE%97/20221020201315728635_334_image-20221020104858172.png)
+![image-20221020104858172](https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/c%2B%2B%E6%8B%BE%E9%81%97-%E5%9F%BA%E6%9C%AC%E8%AF%AD%E6%B3%95%E5%92%8C%E8%BF%90%E7%AE%97/20221020201315728635_334_image-20221020104858172.png)
 
 注意位运算的“地位”不是平等的，不要想当然按顺序算
 
 #### 条件和逗号运算符
 
-![image-20221020111433316](https://raw.githubusercontent.com/Lunaticsky-tql/my_picbed/main/c%2B%2B%E6%8B%BE%E9%81%97-%E5%9F%BA%E6%9C%AC%E8%AF%AD%E6%B3%95%E5%92%8C%E8%BF%90%E7%AE%97/20221020201317368932_518_image-20221020111433316.png)
+![image-20221020111433316](https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/c%2B%2B%E6%8B%BE%E9%81%97-%E5%9F%BA%E6%9C%AC%E8%AF%AD%E6%B3%95%E5%92%8C%E8%BF%90%E7%AE%97/20221020201317368932_518_image-20221020111433316.png)
 
 ```c++
 #include <iostream>
@@ -153,10 +153,9 @@ int main(
 cout<<(0101&101>>3|101<<3^~0x10)<<endl;
 return 0;
 }
-//优先级按位取反~最高，先将0x10（十六进制）按位取反，得到结果11111111 11111111 11111111 11101111，其次优先级按位左移和按位右移运算符优先级相同，计算101>>3得到 00000000 00000000 00000000 00001100，以及101<<3得到 00000000 00000000 00000011 00101000，接下来计算0101（八进制）按位与（101>>3）的结果，得到结果为0,0按位或一个数所得结果为原值。因此最终答案为(101<<3)按位异或(~0x10)的结果，其结果为11111111 11111111 11111100 11000111，为负数，求补得到绝对值。 
-  
-//特别需要注意的是取反的时候是对整个int取反，16变-17
+
 ```
+> 优先级按位取反~最高，先将0x10（十六进制）按位取反，得到结果11111111 11111111 11111111 11101111，其次优先级按位左移和按位右移运算符优先级相同，计算101>>3得到 00000000 00000000 00000000 00001100，以及101<<3得到 00000000 00000000 00000011 00101000，接下来计算0101（八进制）按位与（101>>3）的结果，得到结果为0,0按位或一个数所得结果为原值。因此最终答案为(101<<3)按位异或(~0x10)的结果，其结果为11111111 11111111 11111100 11000111，为负数，求补得到绝对值。 特别需要注意的是取反的时候是对整个int取反，16变-17
 
 ```c++
 设intm=5；float x=3.5；则表达式m+x+4.5的结果应占据[填空]个字节。
