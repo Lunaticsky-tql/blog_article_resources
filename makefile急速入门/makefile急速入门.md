@@ -11,13 +11,6 @@ tags:
   - 环境配置
 index_img: /img/makefile急速入门.png
 ---
----
-title: makefile急速入门
-categories: 小寄巧
-tags:
-  - 环境配置
-index_img: /img/makefile急速入门.png
----
 
 
 # Makefile 急速入门
