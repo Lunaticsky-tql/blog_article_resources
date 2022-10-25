@@ -12,21 +12,7 @@ tags:
   - 环境配置
 index_img: /img/makefile急速入门.png
 ---
----
-title: makefile急速入门
-categories: 小寄巧
-tags:
-  - 环境配置
-index_img: /Users/tianjiaye/Blog/themes/fluid/source/imgmakefile急速入门.png
----
----
-title: makefile急速入门
-categories: 小寄巧
-tags:
-  - 环境配置
-hidden: true
-abbrlink: 23557
----
+
 
 # Makefile 急速入门
 
