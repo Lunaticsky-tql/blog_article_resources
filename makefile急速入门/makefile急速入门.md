@@ -1,3 +1,10 @@
+---
+title: makefile急速入门
+categories: 小寄巧
+tags:
+  - 操作系统
+hidden: true
+---
 # Makefile 急速入门
 
 或许你和我一样在没有接触过`makefile`的时候看到相对复杂一点的项目依赖感到头大。这里从最简单的情况，到常见用法，快速把`makefile`的基本用法捋一遍。
