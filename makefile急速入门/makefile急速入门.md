@@ -2,7 +2,7 @@
 title: makefile急速入门
 categories: 小寄巧
 tags:
-  - 操作系统
+  - 环境配置
 hidden: true
 ---
 # Makefile 急速入门
