@@ -3,7 +3,7 @@ title: makefile急速入门
 categories: 小寄巧
 tags:
   - 环境配置
-hidden: true
+index_img: /Users/tianjiaye/Blog/themes/fluid/source/imgmakefile急速入门.png
 ---
 ---
 title: makefile急速入门
@@ -13,20 +13,7 @@ tags:
 hidden: true
 abbrlink: 23557
 ---
----
-title: makefile急速入门
-categories: 小寄巧
-tags:
-  - 环境配置
----
----
-title: makefile急速入门
-categories: 小寄巧
-tags:
-  - 环境配置
-hidden: true
-abbrlink: 23557
----
+
 # Makefile 急速入门
 
 或许你和我一样在没有接触过`makefile`的时候看到相对复杂一点的项目依赖感到头大。这里从最简单的情况，到常见用法，快速把`makefile`的基本用法捋一遍。
