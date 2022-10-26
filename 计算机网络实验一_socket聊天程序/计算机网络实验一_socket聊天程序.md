@@ -1,3 +1,9 @@
+---
+title: 计算机网络实验一_socket聊天程序
+categories: 作业
+tags:
+  - 寄网
+---
 # 计算机网络实验一_Socket聊天程序
 
 2013599 田佳业
@@ -12,7 +18,7 @@
 
 此实验使用了Windows多线程的方式实现了多人聊天功能，流程和协议设计如下图所示：
 
-![connect](/Users/tianjiaye/QQ文件/寄网/计算机网络实验一_socket聊天程序.assets\connect.png)
+![connect](https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%AE%9E%E9%AA%8C%E4%B8%80_socket%E8%81%8A%E5%A4%A9%E7%A8%8B%E5%BA%8F/20221026193748648308_976_connect.png)
 
 对于每一个用户的聊天过程，分为建连阶段和聊天阶段。
 
@@ -36,7 +42,7 @@
 
 注：下图包含了一次客户端断开重连的过程，可以看到服务器能够正确的识别这一过程，且对在线人数进行更新。
 
-![image-20221022211508575](/Users/tianjiaye/QQ文件/寄网/计算机网络实验一_socket聊天程序.assets\image-20221022211508575.png)
+![image-20221022211508575](https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%AE%9E%E9%AA%8C%E4%B8%80_socket%E8%81%8A%E5%A4%A9%E7%A8%8B%E5%BA%8F/20221026193750618844_199_image-20221022211508575.png)
 
 ##### 客户端 
 
@@ -44,11 +50,11 @@
 
 + 之后输入用户名，这里需要注意用户名不能与关键字(在该程序中为`quit`和`all`)。当然在本地验证即可。等待服务器确认信息后，建立两个线程：发送和接收线程，以防止阻塞。
 
-![客户端](/Users/tianjiaye/QQ文件/寄网/计算机网络实验一_socket聊天程序.assets\image-20221022211345244.png)
+![客户端](https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%AE%9E%E9%AA%8C%E4%B8%80_socket%E8%81%8A%E5%A4%A9%E7%A8%8B%E5%BA%8F/20221026193752409499_274_image-20221022211345244.png)
 
 下面是上线通知的实现效果：
 
-![上线通知](/Users/tianjiaye/QQ文件/寄网/计算机网络实验一_socket聊天程序.assets\image-20221022211828762.png)
+![上线通知](https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%AE%9E%E9%AA%8C%E4%B8%80_socket%E8%81%8A%E5%A4%A9%E7%A8%8B%E5%BA%8F/20221026193754614735_579_image-20221022211828762.png)
 
 #### 协议设计
 
@@ -66,9 +72,9 @@
 
 以下两幅图片展示了客户端收到的对应的情况。
 
-![image-20221022214111930](/Users/tianjiaye/QQ文件/寄网/计算机网络实验一_socket聊天程序.assets\image-20221022214111930.png)
+![image-20221022214111930](https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%AE%9E%E9%AA%8C%E4%B8%80_socket%E8%81%8A%E5%A4%A9%E7%A8%8B%E5%BA%8F/20221026193756459285_459_image-20221022214111930.png)
 
-![image-20221022213615110](/Users/tianjiaye/QQ文件/寄网/计算机网络实验一_socket聊天程序.assets\image-20221022213615110.png)
+![image-20221022213615110](https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%AE%9E%E9%AA%8C%E4%B8%80_socket%E8%81%8A%E5%A4%A9%E7%A8%8B%E5%BA%8F/20221026193758300289_769_image-20221022213615110.png)
 
 ##### 客户端事件
 
@@ -82,9 +88,9 @@
 
 下图展示了私聊和群聊的结果。
 
-![image-20221022224632714](/Users/tianjiaye/QQ文件/寄网/计算机网络实验一_socket聊天程序.assets\image-20221022224632714.png)
+![image-20221022224632714](https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%AE%9E%E9%AA%8C%E4%B8%80_socket%E8%81%8A%E5%A4%A9%E7%A8%8B%E5%BA%8F/20221026193759994557_881_image-20221022224632714.png)
 
-![image-20221022224533046](/Users/tianjiaye/QQ文件/寄网/计算机网络实验一_socket聊天程序.assets\image-20221022224533046.png)
+![image-20221022224533046](https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%AE%9E%E9%AA%8C%E4%B8%80_socket%E8%81%8A%E5%A4%A9%E7%A8%8B%E5%BA%8F/20221026193801774887_602_image-20221022224533046.png)
 
 #### 协议设计
 
@@ -370,7 +376,7 @@ void broadcast(char msg[MSG_SIZE], int id = -1) {
 
 消息转发线程主要根据收到的报文控制段对消息进行不同的处理并转发。同时在服务器端输出日志，如下图所示。
 
-![image-20221022225008715](/Users/tianjiaye/QQ文件/寄网/计算机网络实验一_socket聊天程序.assets\image-20221022225008715.png)
+![image-20221022225008715](https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%AE%9E%E9%AA%8C%E4%B8%80_socket%E8%81%8A%E5%A4%A9%E7%A8%8B%E5%BA%8F/20221026193803523871_125_image-20221022225008715.png)
 
 在程序中除了根据姓名找`socket id`,也常常出现反着找的情况。
 
