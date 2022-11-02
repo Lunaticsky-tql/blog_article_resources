@@ -28,13 +28,13 @@ tags:
 
 通过下面命令安装`hexo`环境。(其实还需要安装`npm`环境，不过在此就略去了)。
 
-```
+```shell
 sudo npm install -g hexo-cli
 ```
 
 新建博客目录结构如下：
 
-```
+```shell
 my_hexo_test_server
 .
 ├── _config.yml
@@ -48,8 +48,6 @@ my_hexo_test_server
 ├── source
 │   └── _posts
 └── themes
-    └── wireshark
-    themes
     └── wireshark
         ├── _config.yml
         ├── layout
@@ -86,7 +84,7 @@ my_hexo_test_server
 </html>
 ```
 在终端执行
-```
+```shell
 (base) ➜  my_hexo_test_server hexo g
 (base) ➜  my_hexo_test_server hexo s
 ```
@@ -124,7 +122,7 @@ my_hexo_test_server
 
 博客示例网页运行在`localhost:4000`，目的端口号匹配。同时可以看到Flag字段值为2，也即第二位SYN字段为1，其余全0。
 
--  第二次握手：服务器收到syn包，必须确认客户的SYN（ACK=j+1），同时自己也发送一个SYN包（SYN=k），即SYN+ACK包，此时服务器进入SYN_RECV状态；        
+-  第二次握手：服务器收到SYN包，必须确认客户的SYN（ACK=j+1），同时自己也发送一个SYN包（SYN=k），即SYN+ACK包，此时服务器进入SYN_RECV状态；        
 
 第二段报文如下所示：
 
@@ -156,6 +154,10 @@ my_hexo_test_server
 
 - 第三次握手成功：说明服务端知道自己的数据已经正确到达客户端端，自己的发功能正常。至此服务成功建立。
 
+<p class="note note-primary">为什么每次连接的序列号都不同？</p>
+
+避免新老连接混淆
+
 #### Syn洪泛攻击
 
 在 TCP 连接的三次握手过程中，我们假设发生以下情况：
@@ -164,13 +166,13 @@ my_hexo_test_server
 
 这种情况下服务器端一般会重试并等待一段时间后丢弃这个未完成的连接, 称为**半连接握手状态。**
 
-攻击者只需要向服务端发送大量的TCP请求连接而不进行第三次回应，就会出现大量的这种半握手状态的连接, 在服务器产生很多的请求队列, 最后的结果往往是堆栈溢出崩溃——即使服务器端的系统资源足够充分,  服务器也将忙于处理攻击者伪造的TCP连接请求而无暇理睬客户的正常请求, 此时服务 器失去了对客户端的响应, 从而达到SynFlood攻击的目的。
+攻击者只需要向服务端发送大量的TCP请求连接而不进行第三次回应，就会出现大量的这种半握手状态的连接, 在服务器产生很多的请求队列, **由于第一次握手时服务端就已经为客户端开辟了接收缓冲区**，大量的请求最后的结果往往是堆栈溢出崩溃,  服务器也将忙于处理攻击者伪造的TCP连接请求而无暇理睬客户的正常请求, 此时服务器失去了对客户端的响应, 从而达到SynFlood攻击的目的。
 
 [DoS攻击之Syn洪泛攻击原理及防御](https://zhuanlan.zhihu.com/p/457884093)
 
 ### 四次挥手
 
-左边的实线连起来的表示同一次会话发生的各个阶段。沿着这条线走到最低端，可以看到四次挥手的过程。
+左边的实线连起来的表示同一次会话发生的各个阶段。沿着这条线走到最底端，可以看到四次挥手的过程。
 
 ![image-20221028181245513](https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%AE%9E%E9%AA%8C%E4%BA%8C_Wireshark%E5%88%86%E6%9E%90%E4%BA%A4%E4%BA%92%E8%BF%87%E7%A8%8B/20221028232058311718_623_image-20221028181245513.png)
 
@@ -183,14 +185,22 @@ my_hexo_test_server
 #### 过程理解
 
 <p class="note note-primary">第二次挥手和第三次挥手一定是紧挨着的吗？
-不一定。这时候只是表示A不再发送数据。服务器仍可在这两次挥手中间发送一些数据。</p>
+</p>
 
+不一定。这时候只是表示A不再发送数据。服务器仍可在这两次挥手中间发送一些数据。
 <p class="note note-primary">为什么第四次挥手后A不能立刻释放资源？
-A并不知道B有没有正确的收到了A的ACK。正常情况下什么也不会发生。但如果没收到，B应当重传FIN，A得知道</p>
-
+</p>
+A并不知道B有没有正确的收到了A的ACK。正常情况下什么也不会发生。但如果没收到，B应当重传FIN，A得知道
 <p class="note note-primary">为什么要等两倍MSL？
+</p>
 无论是否正常，A都需要等待，要取这两种情况等待时间的最大值，以应对最坏的情况发生，这个最坏情况是：
-去向ACK消息最大存活时间（MSL) + 来向FIN消息的最大存活时间(MSL)。</p>
+去向ACK消息最大存活时间（MSL) + 来向FIN消息的最大存活时间(MSL)。
+
+<p class="note note-primary">一定要四次挥手吗？</p>
+
+![image-20221102103437478](https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/Wireshark%E5%88%86%E6%9E%90%E4%BA%A4%E4%BA%92%E8%BF%87%E7%A8%8B/20221102112611088782_354_image-20221102103437478.png)
+
+![image-20221102103222135](https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/Wireshark%E5%88%86%E6%9E%90%E4%BA%A4%E4%BA%92%E8%BF%87%E7%A8%8B/20221102112614834681_752_image-20221102103222135.png)
 
 客户端和服务端的生命周期总结如下：
 
@@ -218,7 +228,7 @@ A并不知道B有没有正确的收到了A的ACK。正常情况下什么也不�
 
 ![image-20221028191110711](https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%AE%9E%E9%AA%8C%E4%BA%8C_Wireshark%E5%88%86%E6%9E%90%E4%BA%A4%E4%BA%92%E8%BF%87%E7%A8%8B/20221028232109214457_454_image-20221028191110711.png)
 
-查看第一次客户端向服务器发送GET请求，含有浏览器请求头以及请行。GET方法没有请求体。
+查看第一次客户端向服务器发送GET请求，含有浏览器请求头以及请求行。GET方法没有请求体。
 
 ![image-20221028190632604](https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%AE%9E%E9%AA%8C%E4%BA%8C_Wireshark%E5%88%86%E6%9E%90%E4%BA%A4%E4%BA%92%E8%BF%87%E7%A8%8B/20221028232111055813_462_image-20221028190632604.png)
 
@@ -243,11 +253,11 @@ A并不知道B有没有正确的收到了A的ACK。正常情况下什么也不�
  将需要转码的字符，按指定编码方式（默认使用UTF-8编码）转化为字节流，每个字节按16进制表示，并添加%组成一个percent编码。
 > 
 
-再之后请求图片：
-
 给第二行每个字节前加%后用UrlDecode解码，可以还原出我的名字。
 
 ![image-20221028193717733](https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%AE%9E%E9%AA%8C%E4%BA%8C_Wireshark%E5%88%86%E6%9E%90%E4%BA%A4%E4%BA%92%E8%BF%87%E7%A8%8B/20221028232117064239_862_image-20221028193717733.png)
+
+再之后请求图片：
 
 同时我们可以看到图片信息也请求成功。
 
