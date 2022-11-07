@@ -1,5 +1,5 @@
 ---
-title: 体系结构-cache
+title: 体系结构-cache经典题目
 categories: 作业
 tags:
   - 体系结构
