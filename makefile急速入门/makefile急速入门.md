@@ -3,7 +3,6 @@ title: makefile急速入门
 categories: 小寄巧
 tags:
   - 环境配置
-index_img: /img/makefile急速入门.png
 ---
 
 
@@ -14,9 +13,9 @@ index_img: /img/makefile急速入门.png
 
 ## 最小示例
 
-考察下面的示例代码：
+下面的过程想必接触过linux平台下的编程都应该很熟悉：
 
-*main.c*
+示例代码*main.c*：
 
 ```c++
 #include <stdio.h>
@@ -42,34 +41,13 @@ $ ./main.out
 hello world!
 ```
 
-## Make 认知
+## Makefile 初步认知
 
-通过 `make` 命令，可以将上面的编译进行有效自动化管理。通过将从输入文件到输出文件的编译无则编写成 Makefile 脚本，Make 工具将自动处理文件间依赖及是否需要编译的检测。
+### 从动手做开始
 
-`make` 命令所使用的编译配置文件可以是 `Makefile`，`makefile` 或 `GUNMake`。
+如果我们想用到中间代码联合编译/链接，或者有大量的源文件做不同的处理，那么敲一行一行的命令将是灾难级的。即使通过按上下箭头的方式回退命令也会浪费很多时间。`makefile`的作用便显现出来了。但是为了便于学习，从上面的最小示例开始，先有一个感性的认知：
 
-其中定义任务的基本语法为：
-
-```
-target1 [target2 ...]: [pre-req-1 pre-req-2 ...]
-	[command1
-	 command2
-	 ......]
-```
-
-上面形式也可称作是一条编译规则（rule）。
-
-其中，
-
-- `target` 为任务名或文件产出。如果该任务不产出文件，则称该任务为 `Phony Targets`。`make` 内置的 phony target 有 `all`, `install` 及 `clean` 等，这些任务都不实际产出文件，一般用来执行一些命令。
-- `pre-req123...` 这些是依赖项，即该任务所需要的外部输入，这些输入可以是其他文件，也可以是其他任务产出的文件。
-- `command` 为该任务具体需要执行的 shell 命令。
-
-## Makefile 实战
-
-比如文章最开始的编译，可通过编写下面的 Makefile 来完成：
-
-在与`main.c`同目录下创建文件‘`makefile`:
+在与`main.c`同目录下创建文件`makefile`:
 
 ```shell
 touch makefile
@@ -81,12 +59,12 @@ touch makefile
 
 ```makefile
 all:main.out
+
 main.out: main.c
+	gcc -o main.out main.c
 
-gcc -o main.out main.c
 clean:
-
-rm main.out
+	rm main.out
 ```
 
 上面的 Makefile 中定义了三个任务，调用时可通过 `make <target name>` 形式来调用。
@@ -116,11 +94,34 @@ $ make
 gcc -o main.out main.c
 ```
 
-## 任务间的依赖
+### Make 规则
+
+可以看到，通过 `make` 命令，能将上面的编译进行有效自动化管理。通过将从输入文件到输出文件的编译无则编写成 Makefile 脚本，Make 工具将自动处理文件间依赖及是否需要编译的检测。
+
+`make` 命令所使用的编译配置文件可以是 `Makefile`，`makefile` 或 `GUNMake`。
+
+其中定义任务的基本语法为：
+
+```
+target1 [target2 ...]: [pre-req-1 pre-req-2 ...]
+	[command1
+	 command2
+	 ......]
+```
+
+上面形式也可称作是一条编译规则（rule）。
+
+其中，
+
+- `target` 为任务名或文件产出。如果该任务不产出文件，则称该任务为 `Phony Targets`。`make` 内置的 phony target 有 `all`, `install` 及 `clean` 等，这些任务都不实际产出文件，一般用来执行一些命令。
+- `pre-req123...` 这些是依赖项，即该任务所需要的外部输入，这些输入可以是其他文件，也可以是其他任务产出的文件。
+- `command` 为该任务具体需要执行的 shell 命令。
+
+### 任务间的依赖
 
 前面调用 `all` 的效果等同于调用 `main.out` 任务，因为 `all` 的输入依赖为 `main.out` 文件。Make 在执行任务前会先检查其输入的依赖项，执行 `all` 时发现它依赖 `main.out` 文件，于是本地查找，发现本地没有，再从 Makefile 中查找看是否有相应任务会产生该文件，结果确实有相应任务能产生该文件，所以先执行能够产生依赖项的任务。
 
-## 增量编译
+### 增量编译
 
 使用 Makefile 进行编译有个好处是，在执行任务时，它会先检查依赖项是否比需要产出的文件新，如果说依赖项更新新，则说明我们需要产出的目标文件属于过时的产物，需要重新生成。
 
@@ -136,10 +137,8 @@ $ make main.out
 
 ```shell
 $ make main.out 
-make: `main.out' is up to date.
+make: Nothing to be done for 'main.out'.
 ```
-
-**NOTE:** 上面是 Mac 上最新版本的 Make 工具（GNU Make 3.81）的提示语，老版或其他变种工具得到的可能是 `Nothing to be done for main.out` 。
 
 现在对输入文件 `main.c` 进行修改：
 
@@ -149,7 +148,7 @@ int main(){
 
 -     printf("hello world!");
 
-+     printf("hello wayou!");
++     printf("hello ucore!");
 
 return 0;
 
@@ -162,8 +161,7 @@ return 0;
 $ make main.out
 gcc -o main.out main.c
 $ ./main.out
-
-hello wayou!⏎
+hello ucore!⏎
 ```
 
 这里 `main.c` 修改后，它在文件上来说，就比 `main.out` 更新了，所以我们说 `main.out` 这个目标， **过时（out-dated）** 了。
@@ -172,7 +170,7 @@ hello wayou!⏎
 
 以上，Makefile 天然实现了增量编译的效果，在大型项目下会节省不少编译时间，因为它只编译过期的任务。
 
-## Phony 类型任务的执行
+### Phony 类型任务的执行
 
 需要注意的是，phony 类型的任务永远都属于过时类型，即，每次 `make` 都会执行。因为这种类型的任务它没有文件产出，就无所谓检查，它的主体只是调用了另外的命令而以。
 
@@ -180,7 +178,7 @@ hello wayou!⏎
 
 ```shell
 $ make
-make: Nothing to be done for `all'.
+make: Nothing to be done for 'all'.
 ```
 
 这里看不出来 `all` 有没有执行，因为目前它还没有包含任何一句命令，调用 `all` 后实际执行的是它的依赖文件 `main.out` 中的任务，而因为后者已经是最新的了，所以无须执行，所以得到了如上的输出。
@@ -207,18 +205,19 @@ $ make
 echo "[all] done"
 [all] done
 $ make
-
 echo "[all] done"
-
 [all] done
 $ make main.out
-
 make: `main.out' is up to date.
 ```
 
 可以看到，属于 phony 类型的任务 `all` 每次都会执行其中定义的 shell 命令，而非 phony 类型的任务 `main.out` 则走了增量编译的逻辑。
 
-## 变量/宏
+## Makefile 基本知识
+
+如果说通过上面的部分能够对`makefile`的工作方式和用途有了大概的理解，弄清楚下面的内容将能够看懂大部分`makefile`代码，并且尝试根据自己的实际情况添加或修改命令。
+
+### 变量/宏
 
 Makefile 中可使用变量（宏）来让脚本更加灵活和减少冗余。
 
@@ -243,13 +242,11 @@ clean:
 rm main.out
 ```
 
-
-
 这样做的好处是什么？因为编译工具可能随着平台或环境或需要编译的目标不同，而不同。比如 `gcc` 只是用来编译 C 代码的，如果是 C++ 你可能要用 `g++` 来编译。如果是编译 WebAssembly 则需要使用 `emcc`。
 
 无论怎样变，我们只需要修改定义在文件开头的 `CC` 变量即可，无须修改其他地方。这当然只是其中一点好处。
 
-## 自动变量/Automatic Variables
+### 自动变量/Automatic Variables
 
 自动变量/Automatic Variables 是在编译规则匹配后工具进行设置的，具体包括：
 
@@ -269,16 +266,14 @@ CC=gcc
 TARGET=main.out
 all:$(TARGET)
 $(TARGET): main.c
-
-$(CC) -o $@ $^
+	$(CC) -o $@ $^
 clean:
-
-rm $(TARGET)
+	rm $(TARGET)
 ```
 
 减少了重复代码，更加易于维护，需要修改时，改动比较小。
 
-## VPATH & vpath
+### VPATH & vpath
 
 可通过 `VPATH` 指定依赖文件及产出文件的搜索目录。
 
@@ -295,7 +290,7 @@ vpath %.h include
 
 此处 `%` 表示文件名。
 
-## 依赖规则/Dependency Rules
+### 依赖规则/Dependency Rules
 
 ```makefile
 Main.o : Main.h Test1.h Test2.h
@@ -307,7 +302,7 @@ Test2.o : Test2.h
 
 这种规则可达到这种效果，即，右边任何文件有变更，左边的产出便成为过时的了。
 
-## 匹配规则/Pattern Rules
+### 匹配规则/Pattern Rules
 
 区别于明确指定了产出与依赖，如果一条规则包含通配符，则称作匹配规则（Pattern Rules）。
 
@@ -345,11 +340,11 @@ Test2.o : Test2.h
     g++ -g -o $@ -c $<
 ```
 
-## Makefile 函数
+### Makefile 函数
 
 函数主要分为两类：make内嵌函数和用户自定义函数。对于 GNU make内嵌的函数，直接引用就可以了；对于用户自定义的函数，要通过make的call函数来间接调用。
 
-### 通配符函数
+#### 通配符函数
 
 当我们想要对文件名进行通配时，可以采用通配符\*或%来进行，如上所述。但只能将其用于规则目标或依赖以及`shell`命令中：
 
@@ -360,21 +355,21 @@ test: *.o
 	gcc -c $^
 ```
 
-但是其他情况比如如果我们想要获取某个目录下所有的C文件列表，可以使用扩展通配符函数`wildcard`
+但是其他情况比如如果我们想要获取某个目录下所有的C文件列表，可以使用扩展通配符函数`wildcard`：
 
 ```makefile
 SRC  = $(wildcard *.c)
 HEAD = $(wildcard *.h)
 all:    
-@echo "SRC = $(SRC)"    
-@echo "HEAD = $(HEAD)"
+	@echo "SRC = $(SRC)"    
+	@echo "HEAD = $(HEAD)"
 ```
 
-### 文本处理函数
+#### 文本处理函数
 
 如果需要在makefile里进行文件名查找、替换、过滤等操作，则文本处理函数能够帮到忙。可以参阅[这个网站](https://www.zhaixue.cc/makefile/makefile-text-func.html)的介绍。
 
-### shell 函数 		
+#### shell 函数 		
 
 用shell 函数在`makefile`执行过程中使用shell命令。函数的参数就是命令，返回值是命令的执行结果。它和反引号 `` 具有相同的功能。
 
@@ -385,7 +380,7 @@ all:
 @echo "current_path = $(current_path)"
 ```
 
-### 用户自定义函数
+#### 用户自定义函数
 
 GNU make提供了大量的内嵌函数，大大方便了makefile编写。但根据需要，我们也需要自定义一些函数，然后在makefile中引用它们：
 
@@ -401,6 +396,85 @@ $(call func, hello zhaixue.cc)
 
 用户自定义函以define开头，endef结束，给函数传递的参数在函数中使用\$(0)、\$(1)引用，分别表示第1个参数、第2个参数…
 调用时要使用call函数间接调用，各个参数之间使用空格隔开。
+
+## Makefile 解惑
+
+下面是在实践中遇到的一些问题，经过实操或查阅资料进行的总结：
+
+### Makefile 中:= ?= += =的区别
+
+以一个小例子进行说明：
+
+```makefile
+ifdef DEFINE_VAR
+	VAR = “Hello World!”
+else
+endif
+
+ifeq ($(OPT),define)
+	VAR ?= “Hello World! First!”
+endif
+
+ifeq ($(OPT),add)
+	VAR += “Kelly!”
+endif
+
+ifeq ($(OPT),recover)
+	VAR := “Hello World! Again!”
+endif
+
+all:
+	@echo $(VAR)
+```
+
+测试这些命令：
+
+从上面的结果中我们可以清楚的看到他们的区别了
+`=` 是最基本的赋值
+`:=` 是覆盖之前的值
+`?=` 是如果没有被赋值过就赋予等号后面的值
+`+=` 是添加等号后面的值
+
+```shell
+(base) ➜ make DEFINE_VAR=true OPT=define
+“Hello World!”
+(base) ➜ make DEFINE_VAR=true OPT=add
+“Hello World!” “Kelly!”
+(base) ➜ make DEFINE_VAR=true OPT=recover
+“Hello World! Again!”
+(base) ➜ make DEFINE_VAR= OPT=define
+“Hello World! First!”
+(base) ➜ make DEFINE_VAR= OPT=add
+“Kelly!”
+(base) ➜ make DEFINE_VAR= OPT=recover
+“Hello World! Again!”
+```
+
+那么`=`和`:=`到底有什么区别？
+
+ `=`
+
+   make会将整个makefile展开后，再决定变量的值。也就是说，变量的值将会是整个makefile中最后被指定的值。例如：
+
+```makefile
+x = foo
+y = $(x) bar
+x = xyz
+```
+
+   在上例中，y的值将会是 `xyz bar` ，而不是 foo bar 。
+
+`:=`
+
+   “:=”表示变量的值决定于它在makefile中的位置，而不是整个makefile展开后的最终值。
+
+```makefile
+x := foo
+y := $(x) bar
+x := xyz
+```
+
+   在上例中，y的值将会是 `foo bar` ，而不是 `xyz bar` 了。
 
 ## 参考链接
 
