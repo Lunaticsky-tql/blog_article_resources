@@ -1,5 +1,5 @@
 ---
-title: 体系结构-cache经典题目
+title: 体系结构-cache
 categories: 作业
 tags:
   - 体系结构
@@ -14,7 +14,7 @@ tags:
 
 ![BDE01ED506906D92EDDFF59FB5BA32D9](https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84-cache/20221107135836770239_118_BDE01ED506906D92EDDFF59FB5BA32D9.jpg)
 
-![8777BD10551663F195CC6E5C33F5C986](https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84-cache/20221107135838302992_961_8777BD10551663F195CC6E5C33F5C986.jpg)
+![image-20221110201142068](https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84-cache/20221110201157288967_934_image-20221110201142068.png)
 
 ![image-20221107220004897](https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84-cache/20221107220136090940_467_image-20221107220004897.png)
 
