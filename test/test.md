@@ -1,699 +1,525 @@
+---
+title: C++拾遗
+categories: 笔记
+tags: [C++]
+---
 # testtest
-
-
-
-2013599 田佳业
 
 ## 实验要求
 
-使用流式Socket，设计一个两人聊天协议，要求聊天信息带有时间标签。请完整地说明交互消息的类型、语法、语义、时序等具体的消息处理方式。拓展实现功能（如群聊、多线程等）
+利用数据报套接字在用户空间实现面向连接的可靠数据传输，功能包括：建立连接、差错检测、确认重传等。流量控制采用停等机制，完成给定测试文件的传输。
 
 ## 程序流程展示
 
-### 模块说明
+### 协议设计
 
-此实验使用了Windows多线程的方式实现了多人聊天功能，流程和协议设计如下图所示：
+在本次实验中采用基于rdt3.0的协议设计。
 
-![connect](C:\Users\LENOVO\Desktop\计算机网络实验一_socket聊天程序.assets\connect.png)
+#### 报文结构
 
-对于每一个用户的聊天过程，分为建连阶段和聊天阶段。
+![image-20221119150328876](https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/test/20221120174816562393_867_image-20221119150328876.png)
 
-### 建连阶段
+如图所示，报文头长度共`128Bits`。下面介绍报文结构设计的思路。
 
-#### 流程设计
+首先，注意到我们的实验只需要从客户端到服务器单向传输数据，因此我们事实上整个实验只需要一个序列号字段即可满足需求。对于发送端对应`TCP`中的`seq`,接收端对应`TCP`中的`ack`。
 
-##### 服务器
+下面是十六位校验和以及数据报字段长度，与`TCP`相同。
 
-服务器主要做了以下工作：
+目前使用`u_short`来存放`flag`。其字段含义如下：
 
-+ 设置最大聊天人数并在接收连接前验证
+`F`:`FIN`
 
-+ 建立socket，绑定ip和端口号，进入监听模式进行等待
+`S`:`SYN`
 
-+ 客户端连接后，得到客户端输入的用户名，验证是否在已有用户列表，若否，为其单独创建线程并在`socket`池中为其分配`socket`
+`A`:`ACK`
 
-+ 连接成功，向其发送欢迎信息并通知在线的用户
+`H`:`FILE_HEAD`
 
-+ 每当用户连接成功后，服务器显示用户信息及连接时间。
+`FILE_HEAD`用于指示接收端此报文包含文件信息的字段。
 
-注：下图包含了一次客户端断开重连的过程，可以看到服务器能够正确的识别这一过程，且对在线人数进行更新。
+`window_size`本次实验还没有用到。
 
-![image-20221022211508575](C:\Users\LENOVO\Desktop\计算机网络实验一_socket聊天程序.assets\image-20221022211508575.png)
+`option`为可选字段，在本次实验中暂时用于存放文件名。
 
-##### 客户端 
+`data`的最大长度可以调节，本次实验定义为1024字节。
 
-+ 由于程序默认在`localhost`上运行，因此客户端只需要手动选择正确的端口号与服务器进行连接，若连接失败，退出程序。
-
-+ 之后输入用户名，这里需要注意用户名不能与关键字(在该程序中为`quit`和`all`)。当然在本地验证即可。等待服务器确认信息后，建立两个线程：发送和接收线程，以防止阻塞。
-
-![客户端](C:\Users\LENOVO\Desktop\计算机网络实验一_socket聊天程序.assets\image-20221022211345244.png)
-
-下面是上线通知的实现效果：
-
-![上线通知](C:\Users\LENOVO\Desktop\计算机网络实验一_socket聊天程序.assets\image-20221022211828762.png)
-
-#### 协议设计
-
-由于此部分界限明确，且不涉及与其他服务器的交互，为保证速度和效率，从简设计即可。只传输最需要的东西。并且由于这个过程顺序是且必须是确定的，串行执行共用端口不至混淆。
-
-### 聊天阶段
-
-#### 流程设计
-
-##### 服务器事件
-
-程序在调度设计中着重注意了一点：在整个聊天室中，服务器可以作为“管理员”向用户发送消息，而不仅仅实现转发功能。为了实现这一点，程序采用了子线程的方式。主线程除了创建socket便将与客户端建立连接的过程交给子线程去干，服务端负责转发的线程由子线程创建。主线程自己则进入等待输入的过程。
-
-主线程有输入分一下两种情况：正常字符串和`exit`。正常字符串会即时群发给所有在线用户并标记为`SERVER` 信息。若输入`exit`则退出服务器，并在退出之前向客户端群发通告，并同时退出客户端的程序。
-
-以下两幅图片展示了客户端收到的对应的情况。
-
-![image-20221022214111930](C:\Users\LENOVO\Desktop\计算机网络实验一_socket聊天程序.assets\image-20221022214111930.png)
-
-![image-20221022213615110](C:\Users\LENOVO\Desktop\计算机网络实验一_socket聊天程序.assets\image-20221022213615110.png)
-
-##### 客户端事件
-
-按照同样的方式可以实现客户端离线群发功能。不再赘述。当然，断开后删除个人信息并更新计数也是必要的。
-
-##### 私聊和群聊
-
-可以从上述图片中看出客户端命令行有两个参数：发送对象和消息。
-
-从实现上，这两种方式没有本质的区别。稍微需要注意的一些细节主要是群发不需要发给请求方，但私发时如果选择发送给自己，自己仍然可以收到消息。
-
-下图展示了私聊和群聊的结果。
-
-![image-20221022224632714](C:\Users\LENOVO\Desktop\计算机网络实验一_socket聊天程序.assets\image-20221022224632714.png)
-
-![image-20221022224533046](C:\Users\LENOVO\Desktop\计算机网络实验一_socket聊天程序.assets\image-20221022224533046.png)
-
-#### 协议设计
-
-协议设计中关注了一下几点：
-
-1. 在线状况下，根据`socket ID`和用户信息表，可以知道是谁发的，因此传递报文时发送者只需要向服务器传递接受者是谁，服务器转发时将对应字段改为发送者姓名即可。这样虽然增加了服务器压力，但能够有效减少报文长度。
-
-2. 控制位仅需一个字节。当然这就像`HTTP`状态码一样，是建立在共识之上的。
-
-3. 消息中需要包含时间戳。因为聊天程序中的时间是需要以发送时间为准的。当然接收时间可以从系统获得，基于此也可以进行时延计算。
-
-以下是程序中关于协议中控制部分的宏定义：
+此部分定义代码段如下;
 
 ```c++
-#define NEW_C 'N' // new client
-#define PUB_C 'P' // public message
-#define PRI_C 'R'  // private message
-#define QUIT_C 'Q' // quit
-#define HELLO_C 'H' // hello message from server
-#define EXIT_C 'T' // exit message from server (server is closed)
-#define ERR_C 'E' // error message from server
-#define SERVER_C 'V' // normal server message
+#define MAX_SIZE 1024
+#define DATA 0x0
+#define FIN 0x1
+#define SYN 0x2
+#define ACK 0x4
+#define ACK_SYN 0x6
+#define ACK_FIN 0x5
+#define FILE_HEAD 0x8
+// datagram format:
+#pragma pack(1)
+struct packet_head {
+    u_int seq;
+    u_short check_sum;
+    u_short data_size;
+    u_short flag;
+    u_short window_size;
+    u_int option;
+
+    packet_head() {
+        seq = 0;
+        check_sum = 0;
+        data_size = 0;
+        flag = 0;
+        window_size = 0;
+        option = 0;
+    }
+};
+
+struct packet {
+    packet_head head;
+    char data[MAX_SIZE]{};
+
+    packet() {
+        packet_head();
+        memset(data, 0, MAX_SIZE);
+    }
+};
+#pragma pack()
 ```
+
+`#pragma pack(1)`用于指示结构体内容按1Byte对齐，以保证报文大小是我们期望的紧凑形式。
+
+#### 建连和断连
+
+依然是注意到单向传输的特点，对握手和挥手的过程也进行了优化：
+
+![image-20221119154308774](https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/test/20221120174837293563_635_image-20221119154308774.png)
+
+左边是TCP三次握手的过程，右侧是我为本次实验设计的握手过程。
+
+TCP第三次握手的目的是“server”需要知道“client”能够收到他的应答。这在server向client发送数据时是有必要的，而本次实验只要发送端知道接收端能发能收，就可以放心的向其发送文件，握手成功。
+
+接收端在收到发送端的握手信息后就可以准备好接受文件了。此时接收端预料的应当是发送端发送文件信息。但是这时候如果发送端断线了，接收端显然不能干等着，否则在真实情景下完全可以发起类似SYN洪泛攻击的行为。因此我们需要设置定时器，如果在这段时间发送端没有任何信息发来，这时应当释放资源并退出。在此次实验中这个最大时间设置的是1min。
+
+同时，虽然此次实验假设接收端向发送端发送数据丢包率为0，但是在实验中仍旧考虑了这种情况：如果接收端的ACK丢了，会发生什么情况？因此在接收端准备接受文件时，仍旧检查收到的是否是握手信息。如果是握手信息，那么重置上述提到的定时器，仍旧停留在等待文件信息的状态。
+
+断连的过程和上述分析类似，也是只需要两次即可。
+
+另外，不需要文件结束位的原因是因为接受者在得到文件信息的时候就知道文件大小，从而知道有几个数据包，什么时候结束。
+
+### 流程设计
+
+程序支持一次建连发送多个文件。
+
+#### 服务器
+
+![image-20221119162017409](https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/test/20221120174839998073_808_image-20221119162017409.png)
+
+#### 客户端
+
+![image-20221119162044532](https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/test/20221120174842569766_332_image-20221119162044532.png)
+
+发送文件数据时遵循rdt3.0的整个过程，也即，在这次实验中序列号暂时只用到0和1。
 
 ## 程序代码解释
 
-具体代码的含义大多在程序中有注释。下面的文字叙述部分主要着眼函数和线程模块划分和功能实现上。
+### 文件发送过程
 
-C++中对字符串的处理`char*`和`string`各有各的优势，有时也会出现各种奇怪的坑，在写代码时一度让人很头疼，因此也在某些地方会有一些不太优雅的写法。
+##### 发送端
 
-### 环境配置
-
-在`cmake`项目中进行`socket`编程需要在CMakeLists中添加以下内容，否则不能正常编译：
-
-```cmake
-cmake_minimum_required(VERSION 3.21)
-project(chatting)
-set(CMAKE_EXE_LINKER_FLAGS "-static")
-set(CMAKE_CXX_STANDARD 14)
-link_libraries(ws2_32 wsock32)
-add_executable(server server.cpp)
-add_executable(client client.cpp)
-```
-
-需额外包含的头文件：
-
-```cmake
-#include <windows.h>
-#include <WinSock2.h>
-#pragma comment(lib, "ws2_32.lib")
-```
-
-### 工具类
-
-`color.h`以及部分`helper.h`的代码主要定义了一些与控制台颜色以及格式化输出显示相关的宏及函数。
-
-`print_toggle`主要用来格式化打印控制台输出。
-
-```
-print_toggle(const string& type,const string &txt,const string& time_str="")
-```
-
-第一个参数是打印格式，取值是下面的宏定义，决定了输出以怎样的颜色和格式进行。第二个参数是内容。并附带可选参数时间。
-
-宏的定义如下：
+首先对照发送端的状态机进行分析：
+![image-20221119162927049](https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/test/20221120174846359103_751_image-20221119162927049.png)
+程序中的函数名与状态机中名称基本一致，思路也非常清晰。主要的变动为把`waitACK0`和`waitACK1`合并到了函数中，而不是作为单独的状态出现。这样做的原因是由于握手和挥手阶段的等待过程和文件传输过程中完全一致，通过相同发代码能够将过程统一起来。
 
 ```c++
-//message datagram parameters
-#define NAME_SIZE 12
-#define TXT_SIZE 125
-#define MSG_SIZE 144
-#define TIME_SIZE 6
-#define TXT_PTR 1
-#define TIME_PTR 126
-#define NAME_PTR 132
-//console line type parameters
-#define ERR "E"
-#define INFO "I"
-#define NEW "N"
-#define LOG "L"
-#define TIP "T"
-#define SUC "S"
-#define WARN "W"
-#define SERVER "V"
-#define GONE "G"
-#define DUL "D" // dulplicate name
-#define HELLO "H"
-#define PUB "P"
-#define PRI "R"
-```
-
-第一部分主要是方便对数据保处理时使用，第二部分则是在控制台上显示相关命令是需要的宏。
-
-### 初始化工作
-
-#### 服务器端
-
-```c++
-    //initialize websocket
-    WSADATA wsaData;
-    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-        print_toggle(ERR, "WSAStartup failed");
-        return -1;
-    }
-    print_toggle(LOG, "WSAStartup success");
-    SOCKET sock_server = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    SOCKADDR_IN server_addr;
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(PORT);
-    server_addr.sin_addr.S_un.S_addr = inet_addr(LOCALHOST);
-    bind(sock_server, (SOCKADDR *) &server_addr, sizeof(SOCKADDR));
-    if (listen(sock_server, 5) == SOCKET_ERROR) {
-        print_toggle(ERR, "listen failed");
-        return 0;
-    }
-    print_toggle(LOG, "listen success");
-```
-
-#### 客户端：
-
-```c++
-    WSADATA wsaData;
-    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-        print_toggle(ERR, "WSAStartup failed");
-        return -1;
-    }
-    print_toggle(LOG, "WSAStartup success");
-    SOCKET sockClient = socket(AF_INET, SOCK_STREAM, 0);
-    print_toggle(TIP, "the chat room is on the localhost");
-    print_toggle(TIP, "please input port:");
-    cin >> port;
-    SOCKADDR_IN addrSrv;
-    addrSrv.sin_family = AF_INET;
-    addrSrv.sin_port = htons(port);
-    addrSrv.sin_addr.S_un.S_addr = inet_addr(LOCALHOST);
-
-    if (connect(sockClient, (SOCKADDR *) &addrSrv, sizeof(SOCKADDR)) != 0) {
-        print_toggle(ERR, "connect failed");
-        return -1;
-    }
-    print_toggle(SUC, "connect success", get_time_str());
-```
-
-这一部分是服务器端创建`socket`和客户端连接`socket`必需的代码，课上也有讲述，此处不一一详细说明。
-
-### 服务器进程
-
-#### 主线程
-
-这一部分主要做的工作是初始化套接字池，并使用`client_manager`函数创建线程，以监听客户端连接。之后便监听输入以控制服务器群发消息或退出。另外，如果没有客户端连接，显然套接字池中所有套接字都不可用，什么也不用做。
-
-```c++
-    //initialize socket array
-    for (unsigned long long &sock_connect: sock_connects) {
-        sock_connect = INVALID_SOCKET;
-    }
-    //create a thread to handle new clients
-    HANDLE hThread = CreateThread(nullptr, 0, client_manager, (LPVOID) &sock_server, 0, NULL);
-    if (hThread == nullptr) {
-        print_toggle(ERR, "create thread failed");
-        return 0;
-    }
-    //input "exit" to exit
-    while (true) {
-        char input[100];
-        cin.getline(input, 100);
-        if (strcmp(input, "exit") == 0) {
-            // tell all clients that the server is going to shut down
-            char msg[MSG_SIZE];
-            memset(msg, 0, MSG_SIZE);
-            msg[0] = EXIT_C;
-            string content = "server has shut down";
-            for (int i = 0; i < TXT_SIZE; i++) {
-                msg[TXT_PTR + i] = content[i];
-            }
-            broadcast(msg, -1);
-            //stop the client_manager thread
-            TerminateThread(hThread, 0);
-            //close server socket
-            closesocket(sock_server);
-            break;
-        } else {
-            //send msg to all clients
-            char msg[MSG_SIZE];
-            memset(msg, 0, MSG_SIZE);
-            msg[0] = SERVER_C;
-            char txt[TXT_SIZE];
-            strcpy(txt, input);
-            for (int j = 0; j < TXT_SIZE; j++) {
-                msg[j + TXT_PTR] = txt[j];
-            }
-            //add time
-            char time[TIME_SIZE];
-            strcpy(time, get_time_str().c_str());
-            for (int j = 0; j < TIME_SIZE; j++)
-                msg[j + TIME_PTR] = time[j];
-            broadcast(msg);
-        }
-    }
-    return 0;
-}
-```
-
-其中的`broadcast`函数便是群发消息所使用的是。下面看其实现：
-
-```c++
-void broadcast(char msg[MSG_SIZE], int id = -1) {
-    for (int i = 0; i < MAX_CLIENT; i++) {
-        if (sock_connects[i] != INVALID_SOCKET && i != id) {
-            //we don't send the message to the sender
-            send(sock_connects[i], msg, MSG_SIZE, 0);
-        }
-    }
-}
-```
-
-依次检查`socket`池，然后给有效且不是`id`对应的socket发送消息。
-
-#### 客户端连接线程
-
-`[[noreturn]]`表明这个函数自始至终监听新加入的`socket`。连接时服务器不提示，发送用户名时服务器进行第一次消息接收并根据情况发送欢迎信息或要求客户端重新输入用户名。每次接收消息循环结束，表示有客户端进入或离开，更新一次在线信息，并启动`handle_msg`线程进行消息转发。
-
-```c++
-[[noreturn]] DWORD WINAPI client_manager(LPVOID lparam) {
-    //accept new clients
-    auto *sock_server = (SOCKET *) lparam;
-
-    while (true) {
-        int index = 0;
-        for (; index < MAX_CLIENT; index++) {
-            if (sock_connects[index] == INVALID_SOCKET)
-                break;
-        }
-        if (index == MAX_CLIENT) {
-            print_toggle(WARN, "the server is full");
-            continue;
-        }
-        SOCKADDR_IN addrClient;
-        int lenAddr = sizeof(SOCKADDR);
-        sock_connects[index] = accept(*sock_server, (SOCKADDR *) &addrClient, &(lenAddr));
-        if (sock_connects[index] == SOCKET_ERROR) {
-            print_toggle(ERR, "could not accept client!");
-            sock_connects[index] = INVALID_SOCKET;
-            continue;
-        }
-        while (true) {
-            char name[NAME_SIZE];
-            recv(sock_connects[index], name, NAME_SIZE, 0);
-            if (username_map.find(string(name)) == username_map.end()) {
-                username_map.insert(pair<string, int>(string(name), index));
-                send(sock_connects[index], HELLO, 1, 0);
-                string new_client = "new client: " + string(name) + " entered the chat room";
-                string online = "online:" + to_string(username_map.size());
-                //get the id of the new client
-                int id = username_map[string(name)];
-                print_toggle(INFO, new_client,get_time_str());
-                // broadcast
-                char msg[MSG_SIZE];
-                memset(msg, 0, MSG_SIZE);
-                for (int j = 0; j < TXT_SIZE; j++)
-                    msg[j + TXT_PTR] = new_client.c_str()[j];
-                msg[0] = NEW_C;
-                //add time
-                char time[TIME_SIZE];
-                strcpy(time, get_time_str().c_str());
-                for (int j = 0; j < TIME_SIZE; j++)
-                    msg[j + TIME_PTR] = time[j];
-                broadcast(msg, id);
-                break;
-            } else {
-                send(sock_connects[index], DUL, 10, 0);
-            }
-        }
-        HANDLE h_thread_c=CreateThread(nullptr, 0, handle_msg, (LPVOID) &sock_connects[index], 0, nullptr);
-        CloseHandle(h_thread_c);
-        string online = "online: " + to_string(username_map.size());
-        print_toggle(INFO, online,get_time_str());
-    }
-}
-```
-
-
-
-#### 消息转发线程
-
-消息转发线程主要根据收到的报文控制段对消息进行不同的处理并转发。同时在服务器端输出日志，如下图所示。
-
-![image-20221022225008715](C:\Users\LENOVO\Desktop\计算机网络实验一_socket聊天程序.assets\image-20221022225008715.png)
-
-在程序中除了根据姓名找`socket id`,也常常出现反着找的情况。
-
-这一部分需要注意的点是在`PRI_C`即私密聊天情况下，如果客户端给出的姓名不在当前上线用户的范围之内，会单独给发送者提示。
-
-```c++
-DWORD WINAPI handle_msg(LPVOID lparam) {
-    auto *socket = (SOCKET *) lparam;
-    int id = 0;
-    for (int i = 0; i < MAX_CLIENT; i++) {
-        if (sock_connects[i] == *socket) {
-            id = i;
-            break;
-        }
-    }
-    // listen to the message from the client
-    while (true) {
-        char from_user[NAME_SIZE];
-        char msg[MSG_SIZE];
-        char content[TXT_SIZE];
-        memset(from_user, 0, NAME_SIZE);
-        memset(msg, 0, MSG_SIZE);
-        memset(content, 0, TXT_SIZE);
-        int ret = recv(*socket, msg, MSG_SIZE, 0);
-        if (ret == SOCKET_ERROR) {
-            print_toggle(WARN, "client closed unexpectedly");
-            closesocket(*socket);
-            //remove the socket from the list
-            sock_connects[id] = INVALID_SOCKET;
-            //remove the username from the ma according to the id
-            for (auto it = username_map.begin(); it != username_map.end(); it++) {
-                if (it->second == id) {
-                    username_map.erase(it);
+        while(pkt_no<pkt_total)
+        {
+            pkt_data_size=min(MAX_SIZE,file_len-pkt_no*MAX_SIZE);
+            switch(stage)
+            {
+                case SEND0:
+                {
+                    packet sndpkt = make_pkt(DATA, 0, pkt_data_size, file_data + pkt_no * MAX_SIZE);
+                    udt_send(sndpkt);
+                    if (!wait_ACK0(sndpkt)) {
+                        print_message("Failed when sending packet number " + to_string(pkt_no), ERR);
+                        return 1;
+                    }
+                    print_message("Sent packet number " + to_string(pkt_no)+" with seq 0", DEBUG);
+                    pkt_no++;
+                    stage = SEND1;
                     break;
                 }
-            }
-            break;
-        }
-        char type = msg[0];
-        //get the username from the map
-        string username;
-        for (auto &item: username_map) {
-            if (item.second == id) {
-                username = item.first;
-                break;
-            }
-        }
-        switch (type) {
-            case QUIT_C: {
-                // close client through the client's receive thread
-                char msg_exit[MSG_SIZE];
-                memset(msg_exit, 0, MSG_SIZE);
-                msg_exit[0] = EXIT_C;
-                string exit_msg ="you have been moved out of the chat room";
-                send(*socket, msg_exit, MSG_SIZE, 0);
-                closesocket(*socket);
-                sock_connects[id] = 0;
-                username_map.erase(username);
-                string gone_saying = username + " has quit the chat room at ";
-                print_message(GONE, gone_saying,get_time_str());
-                //broadcast the quit message
-                for (unsigned long long sock_connect: sock_connects) {
-                    if (sock_connect != 0) {
-                        // attach the content to the message
-                        char msg_forwards[MSG_SIZE];
-                        memset(msg_forwards, 0, MSG_SIZE);
-                        msg_forwards[0] = QUIT_C;
-                        for (int i = 0; i < TXT_SIZE; i++) {
-                            msg_forwards[TXT_PTR + i] = gone_saying[i];
-                        }
+                case SEND1:
+                {
+                    packet sndpkt = make_pkt(DATA, 1, pkt_data_size, file_data + pkt_no * MAX_SIZE);
+                    udt_send(sndpkt);
+                    if (!wait_ACK1(sndpkt)) {
+                        print_message("Failed when sending packet number " + to_string(pkt_no), ERR);
+                        break;
                     }
+                    print_message("Sent packet number " + to_string(pkt_no)+" with seq 1", DEBUG);
+                    pkt_no++;
+                    stage=SEND0;
+                    break;
                 }
-                break;
+                default:
+                    break;
             }
-            case PUB_C: {
-                //get the username from the map
-                string info="received a public message from ";
-                info+=username;
-                print_toggle(LOG, info,get_time_str());
-                broadcast(msg, id);
-                break;
+        }
+```
+
+下面是`waitACK`相关函数的实现，以`waitACK0`为例：
+
+首先由于需要处理超时事件，发送端和接收端所有的·`socket`都是非阻塞状态的。对于发送端`while`条件中的`rdt_rcv`是非阻塞的，以便在循环内判断超时进行消息重发。当没有收到消息时返回0，收到消息时返回1。循环内的重发若超过一定次数（`MAX_RESEND_TIMES`,其值为10），便可认为接收端由于意外断连，不再向其发送消息，程序退出。
+
+```c++
+bool wait_ACK0(packet sndpkt) {
+    int resend_times = 0;
+    //start a timer
+    clock_t start = clock();
+    packet rcvpkt;
+    //non-blocking receive here
+    while (!rdt_rcv(rcvpkt) || isACK(rcvpkt, 1)||corrupt(rcvpkt)) {
+        if (timeout(start)) {
+            udt_send(sndpkt);
+            start = clock();
+            if (resend_times > MAX_RESEND_TIMES) {
+                print_message("Resend times exceed the limit, there must be something wrong with the network", ERR);
+                return false;
+            } else {
+                print_message("Resend packet with seq 0", WARNING);
+                resend_times++;
             }
-            case PRI_C: {
-                //get the username from the map
-                string info="received a public message from ";
-                info+=username;
-                print_toggle(LOG, info,get_time_str());
-                //get the target user
-                char target_user[NAME_SIZE];
-                for (int i = 0; i < NAME_SIZE; i++) {
-                    target_user[i] = msg[NAME_PTR + i];
-                }
-                string target_user_s(target_user);
-                //check if the target user is online
-                if (username_map.find(target_user) == username_map.end()) {
-                    //target user is not online
-                    // show log on the server
-                    string error_msg = "the target user ";
-                    error_msg.append(target_user);
-                    error_msg.append(" provided by ");
-                    error_msg.append(username);
-                    error_msg.append(" is not online!");
-                    print_message(LOG, error_msg);
-                    //send the error message to the sender
-                    char msg_error[MSG_SIZE];
-                    memset(msg_error, 0, MSG_SIZE);
-                    msg_error[0] = ERR_C;
-                    string ree_msg_to_send = target_user_s + " is not online!";
-                    for (int i = 0; i < TXT_SIZE; i++) {
-                        msg_error[TXT_PTR + i] = error_msg[i];
-                    }
-                    send(*socket, msg_error, MSG_SIZE, 0);
+        }
+        if (isACK(rcvpkt, 1)) {
+            print_message("Received ACK1, discard it", DEBUG);
+        }
+    }
+    return true;
+}
+```
+
+`rdt_rcv(rcvpkt)`实现如下：
+
+```c++
+bool rdt_rcv(packet &packet1) {
+    int len = sizeof(addr_server);
+    int ret = recvfrom(socket_sender, (char *) &packet1, PACKET_SIZE, 0, (SOCKADDR *) &addr_server, &len);
+    if (ret == SOCKET_ERROR) {
+        return false;
+    }
+    return ret != 0;
+}
+```
+
+##### 接收端
+
+![image-20221119163135874](https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/test/20221120174849494570_228_image-20221119163135874.png)
+
+与发送端有所不同，这里的`rdt_rcv(rcvpkt)`是阻塞的，内含一个非阻塞的`recvfrom`进行循环接收。若超时（一分钟）仍未收到消息，认为发送端可能意外退出，跳出接收循环，并随后判断文件是否完整接收，以作退出之前的保存和清理工作。这样设计的原因也是在握手和挥手时不依赖其他条件的需要同样的操作，能够较好的统一起来。
+
+其他部分与状态机中一致。在循环内部需要判断接收到的文件是否已经完全接受，若接受完毕保存文件并退出，准备继续接受下一个文件。
+
+```c++
+while (rdt_rcv(rcvpkt)) {
+    if (not_corrupt(rcvpkt)) {
+        if (has_seq0(rcvpkt)) {
+            if (stage == WAIT0) {
+                print_message("Received packet " + to_string(pkt_no) + ", with seq 0", DEBUG);
+                pkt_data_size = rcvpkt.head.data_size;
+                memcpy(file_buffer + received_file_len, rcvpkt.data, pkt_data_size);
+                received_file_len += pkt_data_size;
+                packet sndpkt = make_pkt(ACK, 0);
+                udt_send(sndpkt);
+                pkt_no++;
+                stage = WAIT1;
+            } else {
+                print_message("Received a packet with seq 0, but we are waiting for seq 1", WARNING);
+                continue;
+            }
+        } else if (has_seq1(rcvpkt)) {
+            if (stage == WAIT1) {
+                print_message("Received packet " + to_string(pkt_no) + ", with seq 1", DEBUG);
+                pkt_data_size = rcvpkt.head.data_size;
+                memcpy(file_buffer + received_file_len, rcvpkt.data, pkt_data_size);
+                received_file_len += pkt_data_size;
+                packet sndpkt = make_pkt(ACK, 1);
+                udt_send(sndpkt);
+                pkt_no++;
+                stage = WAIT0;
+            } else {
+                print_message("Received a packet with seq 1, but we are waiting for seq 0", WARNING);
+                continue;
+            }
+        }
+    } else {
+        print_message("Received a corrupt packet", DEBUG);
+        continue;
+    }
+    if (received_file_len == file_size) {
+        print_message("Received file successfully", SUC);
+        print_message("Time used: " + to_string(clock() - single_file_start) + "ms", INFO);
+        //write the file to disk
+        string file_path = get_file_path(file_name);
+        ofstream file(file_path, ios::binary);
+        if (file.is_open()) {
+            file.write(file_buffer, file_size);
+            file.close();
+            print_message("File saved to " + file_path, SUC);
+            new_file_received = true;
+        } else {
+            print_message("Failed to open file " + file_path, ERR);
+        }
+        break;
+    }
+}
+```
+
+`rdt_rcv(rcvpkt)`的实现如下：
+
+```c++
+bool rdt_rcv(packet &packet1) {
+    clock_t wait_file_start = clock();
+    //non-blocking receive here
+    int ret = recvfrom(socket_receiver, (char *) &packet1, PACKET_SIZE, 0, (SOCKADDR *) &addr_server, &addr_len);
+    while (ret == SOCKET_ERROR || ret == 0) {
+        //no packet received
+        if (wait_file_timeout(wait_file_start)) {
+            print_message("Timeout, no packet received", ERR);
+            return false;
+        }
+        ret = recvfrom(socket_receiver, (char *) &packet1, PACKET_SIZE, 0, (SOCKADDR *) &addr_server, &addr_len);
+    }
+    return true;
+}
+```
+
+### 握手和挥手过程
+
+有了文件传输过程的分析，握手和挥手便很容易理解，因为实际上只是文件传输的特例。当然，由于握手和挥手的代码在传输之前完成，因此在编写代码时这一部分设计比较困难，后面完成传输过程时又对其进行了一些优化。
+
+相比传输过程，握手和挥手主要是需要处理流程上的细节。
+
+#### 握手
+
+##### 发送端
+
+发送端握手很简单:把包发过去，等ACK，等不到就重发，重发多了就退出。
+
+```c++
+bool handshake() {
+    //as the transmitting is single-direction, so we only need to "shake" two times
+    packet sndpkt = make_pkt(SYN);
+    udt_send(sndpkt);
+    return wait_SYN_ACK();
+}
+```
+
+##### 接收端
+
+接收端思路也很明确：“阻塞”等待发送端的握手信息（一分钟内等不到就退出），如果接收到就握手成功，收到错误的包（比如校验和错误）丢弃。
+
+```c++
+bool handshake() {
+    packet rcvpkt;
+    int wrong_times = 0;
+    while (true) {
+        print_message("Waiting for handshake", INFO);
+        //blocking receive here
+        if (rdt_rcv(rcvpkt)) {
+            if (isSYN(rcvpkt) && not_corrupt(rcvpkt)) {
+                packet sndpkt = make_pkt(ACK_SYN);
+                udt_send(sndpkt);
+                return true;
+            } else {
+                print_message("Received wrong packet", ERR);
+                //discard the packet and continue to wait
+                if (wrong_times > MAX_WRONG_TIMES) {
+                    print_message("Wrong times exceed the limit, there must be something wrong with the network", ERR);
+                    return false;
                 } else {
-                    string info_pri="received a private message from ";
-                    info_pri+=username;
-                    print_toggle(LOG, info_pri,get_time_str());
-                    //target user is online
-                    //send the message to the target user
-                    int target_id = username_map[target_user];
-                    // replace the target user's name with the sender's name
-                    for (int i = 0; i < NAME_SIZE; i++) {
-                        msg[NAME_PTR + i] = username[i];
-                    }
-                    send(sock_connects[target_id], msg, MSG_SIZE, 0);
+                    wrong_times++;
+                    continue;
                 }
-                break;
             }
-
         }
-
+        else {
+            //timeout
+            return false;
+        }
     }
 }
 ```
 
+#### 挥手
 
+由上面的流程图所示，挥手过程仅应当发生在文件传输的间隔中。每次等待用户传送新文件时，用户有两种选择：传或不传。若传则发送文件信息，不传发送挥手信息。不管如何，这时接收端一定处在等待接收文件信息的阶段。
 
-### 客户端进程
+##### 发送端
 
-#### 主线程
+用户没有给出文件名或者选择放弃传送，仅以第一种调用情况为例：
 
 ```c++
-    if (connect(sockClient, (SOCKADDR *) &addrSrv, sizeof(SOCKADDR)) != 0) {
-        print_toggle(ERR, "connect failed");
-        return -1;
+if (file_path.empty()) {
+    //close the connection
+    return bye_bye();
+}
+```
+挥手成功退出程序，流程结束。
+```c++
+int bye_bye() {
+    //send FIN
+    packet sndpkt = make_pkt(FIN);
+    udt_send(sndpkt);
+    if (!wait_FIN_ACK()) {
+        print_message("Failed to receive FIN ACK", ERR);
+        return 1;
     }
-    print_toggle(SUC, "connect success", get_time_str());
-    // send username
-    while (true) {
-        print_toggle(SERVER, "please input your username:", get_time_str());
-        cin >> user_name;
-        // check if the name is "all" or "quit" that may cause conflict
-        if (strcmp(user_name, "all") == 0 || strcmp(user_name, "quit") == 0) {
-            print_toggle(ERR, "the username cannot be set to system reserved words");
-            continue;
-        }
-        send(sockClient, user_name, NAME_SIZE, 0);
-        //it must be a buffer, although it is only a char
-        char status[1];
-        recv(sockClient, status, 10, 0);
-        if (status[0] == HELLO_C) {
-            print_toggle(SUC, "welcome to the chat room!");
-            break;
-        }
-        print_toggle(ERR, "the username has been used, please input another one");
+    else
+    {
+        print_message("Connection closed elegantly, Task finished!", SUC);
+        return 0;
+    }
+}
+```
 
-    }
-    HANDLE h_thread[2];
-    // separate the sending and receiving thread to avoid blocking
-    h_thread[0] = CreateThread(NULL, 0, handlerRec, (LPVOID) &sockClient, 0, NULL);
-    h_thread[1] = CreateThread(NULL, 0, handlerSend, (LPVOID) &sockClient, 0, NULL);
-    WaitForMultipleObjects(2, h_thread, TRUE, INFINITE);
-    CloseHandle(h_thread[0]);
-    CloseHandle(h_thread[1]);
-    closesocket(sockClient);
-    WSACleanup();
+##### 接收端
+
+首先需要介绍接收端等待文件信息的逻辑。如一开始的流程图所示，这发生在握手刚完成或文件传输间隙。如果此时无响应，说明发送端异常退出，接收端也应当退出。
+
+```c++
+if (!ready_for_file(file_name, file_size)) {
+    print_message("Exit because of no response",INFO);
     return 0;
+}
 ```
 
-这一部分进行了用户信息发送以及创建了两个子线程用于发送和收取来自服务器的消息。之后阻塞等待线程结束。
+`ready_for_file`的设计：
 
-#### 发送线程
+首先为了方便状态机设计，约定传送文件信息的报文序列是1。成功收到消息返回ACK。若收到握手消息，通过递归调用达到重置计时的作用。
 
-首先将报文字段进行初始化，以便根据实际情况填入。循环等待用户输入，并在过程中两次检查是否需要退出。之后根据报文的控制段`TYPE`分别构建不同格式信息。注意在这一阶段并不是程报文中的每一个字段都一定用的到。
+在此过程中若发送方发送挥手消息，给予回应并退出程序，流程结束。
 
-```c++
-DWORD WINAPI handlerSend(LPVOID lparam) {
-    auto *socket = (SOCKET *) lparam;
-    char to_user[NAME_SIZE];
-    char msg[MSG_SIZE];
-    char saying[TXT_SIZE];
-    memset(to_user, 0, NAME_SIZE);
-    memset(msg, 0, MSG_SIZE);
-    memset(saying, 0, TXT_SIZE);
-    while (true) {
-        print_toggle(TIP, "please input \"user message\", input 'all' to send to all users");
-        scanf("%s", to_user);
-        // if nothing is input, then continue to ask for input again
-        if (strlen(to_user) == 0) {
-            cout<<"please input something"<<endl;
-            continue;
+```C++
+bool ready_for_file(string &file_name, int &file_size) {
+    packet rcvpkt;
+    print_message("Waiting for file info", INFO);
+    if (rdt_rcv(rcvpkt)) {
+        if (has_seq1(rcvpkt)) {
+            print_message("File name: " + string(rcvpkt.data), DEBUG);
+            print_message("File size: " + to_string(rcvpkt.head.option), DEBUG);
+            file_name = string(rcvpkt.data);
+            file_size = rcvpkt.head.option;
+            string file_path = get_file_path(file_name);
+            print_message("File will be saved to " + file_path, DEBUG);
+            print_message("Ready to receive files", SUC);
+            packet sndpkt = make_pkt(ACK, 1);
+            udt_send(sndpkt);
+            return true;
+        } else if (isSYN(rcvpkt)) {
+            //if the ack is lost, the sender will resend the SYN packet
+            print_message("Received a SYN packet, reset the timer", WARNING);
+            // wait for the file info again
+            return ready_for_file(file_name, file_size);
+        } else if (isFIN(rcvpkt)) {
+            print_message("Received a FIN packet, close the connection", SUC);
+            packet sndpkt = make_pkt(ACK_FIN);
+            udt_send(sndpkt);
+            return false;
+        } else {
+            print_message("Received a wrong packet", ERR);
+            return false;
         }
-        //check quit
-        if (strcmp(to_user, "quit") == 0) {
-            print_toggle(TIP, "you chose to quit the chat room");
-            //send quit message to server
-            msg[0] = QUIT_C;
-            send(*socket, msg, MSG_SIZE, 0);
-            return 0;
-        }
-        scanf("%[^\n]", saying);
-        if(strlen(saying) == 0){
-            continue;
-        }
-        //check quit
-        if (strcmp(saying, "quit") == 0) {
-            print_toggle(TIP, "you have quit the chat room");
-            //send quit message to server
-            msg[0] = QUIT_C;
-            send(*socket, msg, MSG_SIZE, 0);
-            return 0;
-        }
-        //send message to server for forwarding
-        if(strcmp(to_user, "all") == 0){
-            msg[0] = PUB_C;
-            //construct the message
-            //content
-            for(int i = 0; i < TXT_SIZE; i++){
-                msg[i + TXT_PTR] = saying[i];
-            }
-            // from user
-            for(int i = 0; i < NAME_SIZE; i++){
-                msg[i + NAME_PTR] = user_name[i];
-            }
-            //time stamp
-            string time_stamp = get_time_str();
-            for(int i = 0; i < TIME_SIZE; i++){
-                msg[i + TIME_PTR] = time_stamp[i];
-            }
-            send(*socket, msg, MSG_SIZE, 0);
-        }else{
-            msg[0] = PRI_C;
-            //construct the message
-            //content
-            for(int i = 0; i < TXT_SIZE; i++){
-                msg[i + TXT_PTR] = saying[i];
-            }
-            // to user
-            for(int i = 0; i < NAME_SIZE; i++){
-                msg[i + NAME_PTR] = to_user[i];
-            }
-            //time stamp
-            string time_stamp = get_time_str();
-            for(int i = 0; i < TIME_SIZE; i++){
-                msg[i + TIME_PTR] = time_stamp[i];
-            }
-            send(*socket, msg, MSG_SIZE, 0);
-        }
-
+    } else {
+        print_message("Timeout when waiting for file info", ERR);
+        return false;
     }
 }
 ```
 
-#### 接收线程
+### 其他工具类
 
-接收线程是一个解析的过程，并往控制台进行不同格式输出。模式基本类似。
+#### 校验和
+
+由于此次实验并没有要求可变ip和端口号，因此不必加入伪首部的校验。编写代码如下：
 
 ```c++
-DWORD WINAPI handlerRec(LPVOID lparam) {
-    auto *socket = (SOCKET *) lparam;
-    char msg[MSG_SIZE];
-    memset(msg, 0, MSG_SIZE);
-    while (true) {
-        recv(*socket, msg, MSG_SIZE, 0);
-        char type = msg[0];
-        char content[TXT_SIZE];
-        for (int i = 0; i < TXT_SIZE; i++)
-            content[i] = msg[i + TXT_PTR];
-        char time[TIME_SIZE];
-        for (int i = 0; i < TIME_SIZE; i++)
-            time[i] = msg[i + TIME_PTR];
-        switch (type) {
-            // new server message
-            case NEW_C:
-                print_message(NEW, content);
-                break;
-            // typed "quit" and all resources are released, exit the program
-            case EXIT_C:
-                // end of the program
-                print_toggle(WARN, content);
-                exit(0);
-            // public normal message
-            case PUB_C:
-                // get the sender's name
-                char fromUser[NAME_SIZE];
-                for (int i = 0; i < NAME_SIZE; i++)
-                    fromUser[i] = msg[i + NAME_PTR];
-                // print the message
-                print_message(PUB, content, time, fromUser);
-                break;
-            // handle message from server
-            case SERVER_C:
-                //get the time from the message
-                char time_ser[TIME_SIZE];
-                for (int i = 0; i < TIME_SIZE; i++)
-                    time_ser[i] = msg[i + TIME_PTR];
-                print_message(SERVER, content, time_ser);
-                break;
-            // private message
-            case PRI_C:
-                // get the sender's name
-                char from_user[NAME_SIZE];
-                for (int i = 0; i < NAME_SIZE; i++)
-                    from_user[i] = msg[i + NAME_PTR];
-                // print the message
-                print_message(PRI, content, time, from_user);
-                break;
+u_short check_sum(u_short *packet, int packet_len) {
+    u_long sum = 0;
+    // make 16 bit words adjacent
+    int count = (packet_len + 1) / 2;
+    auto *temp = new u_short[count + 1];
+    memset(temp, 0, count + 1);
+    memcpy(temp, packet, packet_len);
+    while (count--) {
+        sum += *temp++;
+        //overflow carry
+        if (sum & 0xFFFF0000) {
+            sum &= 0xFFFF;
+            sum++;
         }
-
-
     }
+    //complement
+    return ~(sum & 0xFFFF);
 }
 ```
+校验方法：
+```c++
+bool not_corrupt(packet &p) {
+    return check_sum((u_short *) &p, HEAD_SIZE + p.head.data_size) == 0;
+}
+
+```
+
+#### 创建数据包
+
+```c++
+packet make_pkt(u_int flag, u_int seq = 0, u_short data_size = 0, const char *data = nullptr, u_short window_size = 0,
+                u_int option = 0) {
+    packet pkt;
+    pkt.head.flag = flag;
+    pkt.head.seq = seq;
+    pkt.head.window_size = window_size;
+    pkt.head.data_size = data_size;
+    pkt.head.option = option;
+    if (data != nullptr) {
+        memcpy(pkt.data, data, data_size);
+    }
+    pkt.head.check_sum = check_sum((u_short *) &pkt, PACKET_SIZE);
+    return pkt;
+}
+```
+
+## 程序演示
+
+### 建立连接
+
+路由器设置：
+
+![image-20221119185527966](https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/test/20221120174851733925_127_image-20221119185527966.png)
+
+接收端开启的稍微晚一些，可以看到发送端有一些重发的握手包：
+
+发送端：
+
+![image-20221119184351874](https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/test/20221120174853547337_658_image-20221119184351874.png)
+
+接收端：
+
+![image-20221119184414935](https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/test/20221120174855445269_279_image-20221119184414935.png)
+
+发送端没有进行文件发送，接收端超时退出：
+
+![image-20221119184511051](https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/test/20221120174857411738_128_image-20221119184511051.png)
+
+异常丢包提示：
+
+![image-20221119184627493](https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/test/20221120174859446501_851_image-20221119184627493.png)
+
+发送端文件发送完毕：
+
+![image-20221119184759988](https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/test/20221120174901707888_692_image-20221119184759988.png)
+
+多文件接收
+
+![image-20221119185617149](https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/test/20221120174903572420_632_image-20221119185617149.png)
