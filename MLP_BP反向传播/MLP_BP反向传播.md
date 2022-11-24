@@ -1,3 +1,9 @@
+---
+title: MLP_BP反向传播
+categories: 作业
+tags:
+  - 机器学习
+---
 # MLP_BP反向传播
 
 ## 实验要求
@@ -20,7 +26,7 @@ $$
 
 以经典的手写体识别任务为例，说明本次实验推导所用符号的含义：
 
-![image-20221124210535110](/Users/tianjiaye/Library/Application Support/typora-user-images/image-20221124210535110.png)
+![image-20221124210535110](https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/MLP_BP%E5%8F%8D%E5%90%91%E4%BC%A0%E6%92%AD/20221124231353617444_705_image-20221124210535110.png)
 
 其中$\sigma$为激活函数，此处使用sigmoid函数即
 
@@ -69,7 +75,7 @@ $$
 
 对此公式符号的含义进行如下直观解释:
 
-![image-20221124230019479](/Users/tianjiaye/Library/Application Support/typora-user-images/image-20221124230019479.png)
+![image-20221124230019479](https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/MLP_BP%E5%8F%8D%E5%90%91%E4%BC%A0%E6%92%AD/20221124231357983833_279_image-20221124230019479.png)
 
 注：上图所指$j$也为$3$；$m_j$表示第$j$类上的预测值在所有样本上的平均。
 ## 梯度下降求解
@@ -100,7 +106,7 @@ $c$为类的个数，比如手写体识别中为10，数字$j$对应于类$j+1$�
 
 阅读下面的求解过程时建议将下图固定在屏幕上。
 
-![image-20221124210539379](/Users/tianjiaye/Library/Application Support/typora-user-images/image-20221124210539379.png)
+![image-20221124210539379](https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/MLP_BP%E5%8F%8D%E5%90%91%E4%BC%A0%E6%92%AD/20221124231401909241_717_image-20221124210539379.png)
 
 #### 最后一层
 
