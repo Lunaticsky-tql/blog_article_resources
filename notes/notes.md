@@ -1,3 +1,9 @@
+---
+title: notes
+categories: 测试
+tags:
+  - test
+---
 查看库的路径
 
 ```python
@@ -11,7 +17,7 @@ print(tensorflow.__file__)
 redis-server.exe redis.windows.conf
 ```
 
-<img src="C:\Users\LENOVO\AppData\Roaming\Typora\typora-user-images\image-20220727113222196.png" alt="image-20220727113222196" style="zoom: 33%;" />
+<img src="https://raw.githubusercontent.com/Lunaticsky-tql/blog_article_resources/main/notes/20221229200836148347_588_image-20220727113222196.png" alt="image-20220727113222196" style="zoom: 33%;" />
 
 gitdir
 
