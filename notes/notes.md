@@ -3,6 +3,7 @@ title: notes
 categories: 测试
 tags:
   - test
+date: 2022-12-29 20:17:26
 ---
 查看库的路径
 
@@ -61,4 +62,3 @@ meld默认使用GBK编码
 ```
 gsettings set org.gnome.meld detect-encodings "['GBK', 'UTF-8', 'ISO-8859-15', 'UTF-16']"
 ```
-
