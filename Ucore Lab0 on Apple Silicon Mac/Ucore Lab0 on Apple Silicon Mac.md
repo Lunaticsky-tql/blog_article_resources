@@ -3,6 +3,7 @@ title: Ucore Lab0 on Apple Silicon Mac
 categories: 操作系统实验
 tags:
   - 操作系统
+date: 2022-12-31 17:17:37
 ---
 ## Ucore Lab0 on Apple Silicon Mac
 
